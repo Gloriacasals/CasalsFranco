@@ -31,21 +31,54 @@ class EpsilonGreedy(Algorithm):
         super().__init__(k)
         self.epsilon = epsilon
 
-    def select_arm(self) -> int:
-        """
-        Selecciona un brazo basado en la política epsilon-greedy.
+   # def select_arm(self) -> int:
+    #    """
+     #   Selecciona un brazo basado en la política epsilon-greedy.
 
-        :return: índice del brazo seleccionado.
-        """
+      #  :return: índice del brazo seleccionado.
+       # """
 
         # Observa que para para epsilon=0 solo selecciona un brazo y no hace un primer recorrido por todos ellos.
         # ¿Podrías modificar el código para que funcione correctamente para epsilon=0?
 
-        if np.random.random() < self.epsilon:
+        #if np.random.random() < self.epsilon:
             # Selecciona un brazo al azar
+         #   chosen_arm = np.random.choice(self.k)
+        #else:
+            # Selecciona el brazo con la recompensa promedio estimada más alta
+         #   chosen_arm = np.argmax(self.values)
+
+        #return chosen_arm
+
+
+def select_arm(self) -> int:
+        """
+        Selecciona un brazo basado en la política epsilon-greedy.
+        Incluye un barrido inicial: si hay brazos sin probar, los selecciona primero.
+
+        :return: índice del brazo seleccionado.
+        """
+        
+        # 1. Barrido inicial: Si hay algún brazo que nunca se ha tocado, se selecciona
+        # Esto garantiza que tengamos una estimación inicial para todos (evita el problema de epsilon=0)
+        for i in range(self.k):
+            if self.counts[i] == 0:
+                return i
+
+        # 2. Política Epsilon-Greedy estándar
+        if np.random.random() < self.epsilon:
+            # Exploración: Selecciona un brazo al azar
             chosen_arm = np.random.choice(self.k)
         else:
-            # Selecciona el brazo con la recompensa promedio estimada más alta
-            chosen_arm = np.argmax(self.values)
+            # Explotación: Selecciona el brazo con mayor valor estimado
+            # NOTA: np.argmax devuelve el primero en caso de empate.
+            # en caso de empate en los valores máximos, deberíamos elegir al azar entre ellos.
+            
+            max_value = np.max(self.values)
+            # Encontramos los índices de todos los brazos que tienen ese valor máximo
+            best_arms = np.where(self.values == max_value)[0]
+            
+            # Si hay empate, elegimos uno al azar entre los mejores. Si no, coge el único.
+            chosen_arm = np.random.choice(best_arms)
 
         return chosen_arm
