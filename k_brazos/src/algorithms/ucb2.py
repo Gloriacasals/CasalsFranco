@@ -34,49 +34,45 @@ class UCB2(Algorithm):
         return int(np.ceil((1 + self.alpha) ** r))
 
     def bonus(self, arm: int) -> float:
-        """
-        Calcula el término de exploración UCB2 para un brazo.
 
-        :param arm: índice del brazo
-        :return: bonus de exploración
-        """
         r_i = self.r[arm]
 
         tau_r = self.tau(r_i)
         tau_r_next = self.tau(r_i + 1)
 
+        # Protección: evitar log negativo o cero
+        inside_log = (np.e * self.t) / tau_r
+        inside_log = max(inside_log, 1.000001)
+
         return np.sqrt(
             (1 + self.alpha) *
-            np.log(np.e * self.t / tau_r) /
+            np.log(inside_log) /
             (2 * tau_r_next)
         )
 
-    def select_arm(self) -> int:
-        """
-        Selecciona un brazo usando la política UCB2.
 
-        :return: índice del brazo seleccionado.
-        """
+    def select_arm(self):
 
         self.t += 1
 
-        # 1. Barrido inicial: probar todos los brazos al menos una vez
+        # Barrido inicial
         for i in range(self.k):
             if self.counts[i] == 0:
                 return i
 
-        # 2. Selección según UCB2
         ucb_values = np.zeros(self.k)
 
         for arm in range(self.k):
             ucb_values[arm] = self.values[arm] + self.bonus(arm)
 
-        # Elegimos el brazo con mayor UCB (desempate aleatorio)
+        # Protección contra NaNs
+        ucb_values = np.nan_to_num(ucb_values, nan=-np.inf)
+
         max_value = np.max(ucb_values)
         best_arms = np.where(ucb_values == max_value)[0]
+
         chosen_arm = np.random.choice(best_arms)
 
-        # Actualizamos época del brazo elegido
         self.r[chosen_arm] += 1
 
         return chosen_arm
