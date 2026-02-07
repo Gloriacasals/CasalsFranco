@@ -28,7 +28,7 @@ def get_algorithm_label(algo: Algorithm) -> str:
     elif isinstance(algo, UCB1):
         label += f" ($c$={algo.c})"
     elif isinstance(algo, UCB2):
-        label += f" ($c$={algo.c}, alpha={algo.alpha})"
+        label += f" (alpha={algo.alpha})"
     elif isinstance(algo, Softmax):
         label += f" ($\\tau$={algo.tau})"
     else:
